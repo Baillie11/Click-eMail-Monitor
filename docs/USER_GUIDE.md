@@ -17,3 +17,8 @@ Connect the deployed MCP app as described in CHATGPT.md. Ask it to list mailboxe
 ## Navigation
 
 Inbox: imported messages. Review queue: drafts and send status. Monitoring: rules and alerts. Mailboxes: connections, tests and scheduling. Team: workspace access. Activity: audit events. Settings: workspace preferences and connections. About: feature overview and getting started.
+
+
+### Mailbox email counts
+
+Each mailbox card shows **Imported emails**, the count of messages currently stored in Click Mail Monitor across its imported folders. It is not a full remote mailbox total outside the configured import/retention window. Counts refresh when mailbox data reloads.

@@ -37,4 +37,4 @@ export async function audit(
     [id(), wid, user, action, entity],
   );
 }
-export const visibleMailboxes = `SELECT b.id,b.workspace_id,b.email,b.provider,b.paused,b.demo,b.status,b.last_check,b.next_check,b.settings FROM mailboxes b JOIN members m ON m.workspace_id=b.workspace_id AND m.user_id=$1 LEFT JOIN mailbox_permissions p ON p.mailbox_id=b.id AND p.user_id=$1 WHERE (m.role IN ('owner','administrator') OR p.user_id IS NOT NULL)`;
+export const visibleMailboxes = `SELECT b.id,b.workspace_id,b.email,b.provider,b.paused,b.demo,b.status,b.last_check,b.next_check,b.settings,(SELECT count(*)::int FROM messages msg WHERE msg.mailbox_id=b.id) AS email_count FROM mailboxes b JOIN members m ON m.workspace_id=b.workspace_id AND m.user_id=$1 LEFT JOIN mailbox_permissions p ON p.mailbox_id=b.id AND p.user_id=$1 WHERE (m.role IN ('owner','administrator') OR p.user_id IS NOT NULL)`;

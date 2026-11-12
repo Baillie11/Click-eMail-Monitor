@@ -1635,6 +1635,10 @@ function MailboxCard({ b, run, refresh, canManage }: any) {
       </p>
       <div className="mailbox-details">
         <span>
+          Imported emails
+          <strong>{Number(b.email_count ?? 0).toLocaleString()}</strong>
+        </span>
+        <span>
           Last successful check
           <strong>
             {b.last_check ? stamp(b.last_check) : "Not checked yet"}

@@ -33,3 +33,10 @@ Users can revoke active connections in Settings. Password reset revokes sessions
 - Optional AI draft API shape: https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
 
 No OpenAI API key is needed for mailbox access through MCP or manual drafting. Optional server-side AI suggestions require an administrator-configured provider key, base URL and model; they have not been tested against a live AI API. Prompts include only the selected email and configured reference material, with daily workspace request limits. This is a review aid, not factual verification.
+
+
+## Plugin branding package (12 November 2026)
+
+`chatgpt-plugin/` preserves the existing registered app mapping and contains the version 1.0.1 manifest, matching 512px favicon artwork, and website URL https://www.clickecommerce.com.au. Package the contents of this directory at the ZIP root and use the existing plugin details page → More actions → Upload new version. No reconnect or permission changes are needed for these metadata changes.
+
+Status: package prepared; ChatGPT upload remains pending because the browser automation extension refuses local file access. This is not yet verified as applied in ChatGPT.

@@ -1,0 +1,21 @@
+{
+  "apps": "./.app.json",
+  "author": {
+    "name": "App developer"
+  },
+  "description": "Read and monitor your IMAP mailboxes, draft replies, and send only after your approval.",
+  "interface": {
+    "capabilities": [],
+    "category": "Other",
+    "defaultPrompt": null,
+    "developerName": "App developer",
+    "displayName": "Click Mail Monitor",
+    "longDescription": "Read and monitor your IMAP mailboxes, draft replies, and send only after your approval.",
+    "shortDescription": "Read and monitor your IMAP mailboxes, draft replies, and send only after your approval.",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png",
+    "websiteURL": "https://www.clickecommerce.com.au"
+  },
+  "name": "dev-6af414f0d65c819188864d9d6f86c0ae",
+  "version": "1.0.1"
+}

@@ -627,3 +627,16 @@ describe("Manual mailbox checks", () => {
     expect((await post("/api/mailboxes/"+box.id+"/check",{})).status).toBe(400);
   });
 });
+
+
+describe("Mailbox card counts", () => {
+  it("returns the imported message count for each visible mailbox", async () => {
+    const response = await agent.get("/api/mailboxes");
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBeGreaterThan(0);
+    for (const b of response.body) {
+      const expected = await one(db, "SELECT count(*)::int AS total FROM messages WHERE mailbox_id=$1", [b.id]);
+      expect(Number(b.email_count)).toBe(Number(expected.total));
+    }
+  });
+});

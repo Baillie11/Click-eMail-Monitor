@@ -44,3 +44,8 @@ All 53 MariaDB tests passed; build, typecheck and lint passed. Added coverage fo
 ## Inbox bulk-check interface — 12 November 2026
 
 Build, typecheck and lint passed. Live browser validation confirmed disabled in-progress Check All Now, sequential progress across all five connected mailboxes, five successful no-new-message results, re-enabled control and refreshed Inbox. Mailbox timestamps advanced. The matching Check Now, Test connection and Pause controls were visually verified on a shared row. Existing backend sync/permission/lease logic is unchanged; the preceding 53-test MariaDB run covers that backend. No mailbox email was sent.
+
+
+### 12 November 2026 — mailbox counts
+
+Build, TypeScript checks, lint, and all 54 MariaDB tests passed. The mailbox API test compares returned counts against stored messages for each visible mailbox. Deployed to VentraIP and verified all six live mailbox cards display their imported email count.
