@@ -143,7 +143,7 @@ function App() {
             <Mail size={23} />
           </span>
           <span>
-            Click<span className="brand-light">eMailMonitor</span>
+            Click<span className="brand-light"> Mail Monitor</span>
           </span>
         </a>
         <div className="workspace-switch">
@@ -452,20 +452,20 @@ function App() {
           {view === "about" && (
             <>
               <PageTitle
-                eyebrow="ABOUT CLICK EMAIL MONITORING"
+                eyebrow="ABOUT CLICK MAIL MONITOR"
                 title="Your email, connected to ChatGPT."
-                text="ClickeMailMonitor brings your existing mailboxes into one workspace so you can find messages, monitor new mail and prepare replies."
+                text="Click Mail Monitor brings your existing mailboxes into one workspace so you can find messages, monitor new mail and prepare replies."
               />
               <div className="about-grid">
                 <section className="panel">
                   <Mail size={24} />
                   <h2>Keep your existing email account</h2>
-                  <p>Connect compatible IMAP mailboxes, including accounts from your web host or business domain. Your email stays with your provider; ClickeMailMonitor imports messages for reading and searching.</p>
+                  <p>Connect compatible IMAP mailboxes, including accounts from your web host or business domain. Your email stays with your provider; Click Mail Monitor imports messages for reading and searching.</p>
                 </section>
                 <section className="panel">
                   <Search size={24} />
                   <h2>Read and search with ChatGPT</h2>
-                  <p>Once you connect the ClickeMailMonitor app in ChatGPT, you can ask it to find imported emails, read a message, summarise a conversation or help draft a reply.</p>
+                  <p>Once you connect the Click Mail Monitor app in ChatGPT, you can ask it to find imported emails, read a message, summarise a conversation or help draft a reply.</p>
                   <p className="muted">Try: “Find emails about my booking” or “Summarise my latest emails.”</p>
                 </section>
                 <section className="panel">
@@ -494,7 +494,7 @@ function App() {
           )}
         </div>
         <footer>
-          ClickeMailMonitor <span>Considered replies. Connected inboxes.</span>
+          Click Mail Monitor <span>Considered replies. Connected inboxes.</span>
         </footer>
       </main>
       {connect && (
@@ -608,7 +608,7 @@ function Auth({ cfg, onLogin, error, run }: any) {
           <span className="brand-mark">
             <Mail />
           </span>
-          ClickeMailMonitor
+          Click Mail Monitor
         </div>
         <div>
           <p className="eyebrow">YOUR INBOX, IN HAND</p>
@@ -2253,7 +2253,7 @@ function OAuthConsent({ token, run }: any) {
       <h2>Connect {pending.clientName}?</h2>
       <p>
         This application can read your authorised mailboxes and prepare drafts.
-        Sending requires your approval in ClickeMailMonitor.
+        Sending requires your approval in Click Mail Monitor.
       </p>
       <p>Access renews automatically for up to 90 days. You can revoke this connection in Settings at any time. Password reset also revokes access.</p>
       <p className="muted">Return address: {pending.redirectUri}</p>

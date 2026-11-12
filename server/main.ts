@@ -18,7 +18,7 @@ app.get("/{*path}", (_req, res) =>
 app.use(errorHandler);
 const server = app.listen(config.port, process.env.HOST || "127.0.0.1", () =>
   console.log(
-    `ClickeMailMonitor: ${config.origin}${config.demo ? " — DEMO, synthetic email only" : ""}`,
+    `Click Mail Monitor: ${config.origin}${config.demo ? " — DEMO, synthetic email only" : ""}`,
   ),
 );
 let busy = false;

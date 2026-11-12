@@ -1,4 +1,4 @@
-# ClickeMailMonitor
+# Click Mail Monitor
 
 A standalone email workspace for existing hosted mailboxes. Read and search mail, monitor deterministic rules, prepare replies, approve exact draft versions, and connect ChatGPT through authenticated MCP.
 

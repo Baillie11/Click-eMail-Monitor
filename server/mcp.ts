@@ -28,7 +28,7 @@ export function mountMcp(app: Express, db: DB, provider: OAuthServerProvider) {
     async (req, res) => {
       const user = String(req.auth?.extra?.userId || "");
       const server = new McpServer({
-        name: "ClickeMailMonitor",
+        name: "Click Mail Monitor",
         version: "0.1.0",
       });
       function tool(

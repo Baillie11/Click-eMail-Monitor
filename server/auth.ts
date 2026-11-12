@@ -58,7 +58,7 @@ export async function notifyAccount(email: string, kind: string, raw: string) {
   await transport.sendMail({
     from: process.env.ACCOUNT_FROM,
     to: email,
-    subject: `ClickeMailMonitor: ${kind === "verify" ? "verify your email" : kind === "invite" ? "workspace invitation" : "reset your password"}`,
+    subject: `Click Mail Monitor: ${kind === "verify" ? "verify your email" : kind === "invite" ? "workspace invitation" : "reset your password"}`,
     text: `Open this link to continue: ${url.toString()}\n\nIf you did not request this, ignore this email.`,
   });
 }

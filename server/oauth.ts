@@ -197,7 +197,7 @@ export function mountOAuth(app: Express, db: DB) {
       issuerUrl: new URL(config.origin),
       resourceServerUrl: new URL(config.origin + "/mcp"),
       scopesSupported: ["mail"],
-      resourceName: "ClickeMailMonitor",
+      resourceName: "Click Mail Monitor",
     }),
   );
   app.get("/api/oauth/pending", requireUser, async (req, res) => {

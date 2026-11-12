@@ -39,3 +39,8 @@ Live send coverage remains incomplete; see docs/VALIDATION.md.
 - Removed the VentraIP-specific Preview label. Mailbox badges now show the actual stored connection status, or Paused/Demo as applicable.
 - Changed the browser tab title to Click Mail Monitor.
 - Build, typecheck and lint passed; live browser verification confirmed both VentraIP mailboxes show Connected and the new tab title is served.
+
+## 12 November 2026 — Consistent app naming
+
+- Renamed visible app text to Click Mail Monitor across the header, sign-in page, About content, footer, consent screen, OAuth resource name, MCP server name and account-email subjects. Updated the production account-email sender display name. Existing URLs, identifiers and credentials are unchanged.
+- Build, typecheck and lint passed. Live browser verification confirmed the updated header, About page and footer after deployment.
