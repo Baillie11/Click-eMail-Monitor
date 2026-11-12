@@ -44,3 +44,9 @@ Live send coverage remains incomplete; see docs/VALIDATION.md.
 
 - Renamed visible app text to Click Mail Monitor across the header, sign-in page, About content, footer, consent screen, OAuth resource name, MCP server name and account-email subjects. Updated the production account-email sender display name. Existing URLs, identifiers and credentials are unchanged.
 - Build, typecheck and lint passed. Live browser verification confirmed the updated header, About page and footer after deployment.
+
+## 12 November 2026 — ChatGPT name and favicon
+
+- Renamed the existing ChatGPT plugin to Click Mail Monitor; its connected-account label updated without changing authorization.
+- Converted the owner-supplied PNG image into a six-size ICO, 32px PNG and 180px Apple touch icon, and linked them in the app HTML.
+- Production build passed. Live icon requests returned 200 with image content types and byte-for-byte matches to the converted assets. ChatGPT settings visibly confirmed the new name.
