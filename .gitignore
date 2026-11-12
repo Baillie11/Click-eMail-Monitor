@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.data/
+.tools/
+coverage/
+*.log
+*.zip
+*.sql
+*.dump
+*.backup
+*.pem
+*.key
+.DS_Store
+Thumbs.db
+# Local evidence may contain private account details.
+docs/*.png
+docs/*.jpg
