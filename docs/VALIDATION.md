@@ -49,3 +49,7 @@ Build, typecheck and lint passed. Live browser validation confirmed disabled in-
 ### 12 November 2026 — mailbox counts
 
 Build, TypeScript checks, lint, and all 54 MariaDB tests passed. The mailbox API test compares returned counts against stored messages for each visible mailbox. Deployed to VentraIP and verified all six live mailbox cards display their imported email count.
+
+### 12 November 2026 — sidebar scrolling
+
+Enabled independent vertical scrolling for the fixed sidebar and prevented its children from shrinking. Production build passed. Verified the live sidebar scrolls to the bottom on a 540px-high viewport, making About and Sign out reachable. Static deployment only; no service restart required.
