@@ -75,8 +75,12 @@ Private app directory: `/home/clickeco/clickemailmonitor`; public directory: `/h
 
 The web launcher originally inherited RLIMIT_NPROC soft 50 / hard 60. Setting soft 65 failed; the corrected launcher sets soft 60, within the existing hard limit, and uses one V8 worker and one libuv worker. The running application process was updated to 60/60. No other application was modified. The account-wide CloudLinux limit remains 65; enough free capacity must remain for Node and mail helpers.
 
-`deploy-worker.py` preserves all other cron entries and installs one bounded 15-minute job. `flock -F` and shell `exec` reduce unnecessary processes, and the cron command sets the soft process limit to 60 before execution. The compiled worker prints a completion timestamp after database close. The exact deployed command completed successfully at 2026-11-11T07:11:36.853Z. Scheduling under live mailbox load remains to be verified.
+`deploy-worker.py` preserves all other cron entries and installs one bounded 15-minute job. `flock -F` and shell `exec` reduce unnecessary processes, and the cron command initially set the soft process limit to 60 before execution. The compiled worker prints a completion timestamp after database close. The exact deployed command completed successfully at 2026-11-11T07:11:36.853Z. Scheduling under live mailbox load remains to be verified.
 
 HTTP requests redirect permanently to HTTPS. Public health returned 200 after requesting a web-process restart.
 
 Confirmed a replacement web process inherited 60/60 limits and returned HTTP 200. The first corrected scheduled cron run completed at 2026-11-11T07:15:03.542Z. A pthread resource warning preceded completion, so account-wide process headroom remains limited; sustained live-mailbox load is not yet verified.
+
+## Worker process-limit correction (12 November 2026)
+
+Worker logs showed timeout failing to fork under the imposed 60-process soft limit. The worker now uses a 65-process soft limit, within the account CloudLinux allowance, and directly executes the configured Node binary with one V8 and one libuv worker. The web launcher remains at its existing 60/60 limit. The 15-minute cron, flock overlap guard and 180-second timeout are retained. Other hosted applications were not changed. Shared account capacity can still prevent execution at peak load; this change is not a capacity guarantee.
