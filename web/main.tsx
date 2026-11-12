@@ -1621,13 +1621,7 @@ function MailboxCard({ b, run, refresh, canManage }: any) {
         </span>
         <Badge
           text={
-            b.provider === "ventraip"
-              ? "Preview — not live verified"
-              : b.demo
-                ? "Demo mailbox"
-                : b.paused
-                  ? "Paused"
-                  : b.status
+            b.demo ? "Demo mailbox" : b.paused ? "Paused" : b.status
           }
         />
       </div>

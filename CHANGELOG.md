@@ -33,3 +33,9 @@ Live send coverage remains incomplete; see docs/VALIDATION.md.
 
 - Added Check All Now to the Inbox, with sequential checks, progress, individual results and an automatic Inbox refresh. Existing per-mailbox permissions, lease protection and rate limits apply.
 - Matched Check Now to the secondary button styling and grouped it with Test connection and Pause; controls wrap on narrow screens.
+
+## 12 November 2026 — Mailbox status and tab title
+
+- Removed the VentraIP-specific Preview label. Mailbox badges now show the actual stored connection status, or Paused/Demo as applicable.
+- Changed the browser tab title to Click Mail Monitor.
+- Build, typecheck and lint passed; live browser verification confirmed both VentraIP mailboxes show Connected and the new tab title is served.

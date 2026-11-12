@@ -2,7 +2,7 @@
 
 A standalone email workspace for existing hosted mailboxes. Read and search mail, monitor deterministic rules, prepare replies, approve exact draft versions, and connect ChatGPT through authenticated MCP.
 
-**Status: initial release, deployed on VentraIP with MariaDB and HTTPS. No Docker required.** ChatGPT OAuth, mailbox listing/search and live IMAP/SMTP authentication have been verified. Fetching an imported test email and automatic OAuth renewal after access-token expiry have also been verified. Real reply delivery and optional AI-provider calls still require end-to-end validation. The VentraIP mailbox adapter remains labelled Preview.
+**Status: initial release, deployed on VentraIP with MariaDB and HTTPS. No Docker required.** ChatGPT OAuth, mailbox listing/search and live IMAP/SMTP authentication have been verified. Fetching an imported test email and automatic OAuth renewal after access-token expiry have also been verified. Real reply delivery and optional AI-provider calls still require end-to-end validation. VentraIP mailbox badges show their actual connection status.
 
 [Live application](https://mailmonitor.clickecommerce.com.au/) · [User guide](docs/USER_GUIDE.md) · [Architecture](docs/ARCHITECTURE.md) · [Operations](docs/OPERATIONS.md)
 
