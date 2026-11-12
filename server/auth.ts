@@ -234,6 +234,7 @@ export function authRoutes(app: Express, db: DB) {
         t.user_id,
       ]);
       await tx.query("DELETE FROM sessions WHERE user_id=$1", [t.user_id]);
+      await tx.query("DELETE FROM oauth_refresh_tokens WHERE user_id=$1", [t.user_id]);
       await tx.query("DELETE FROM oauth_tokens WHERE user_id=$1", [t.user_id]);
       await tx.query("DELETE FROM tokens WHERE user_id=$1 AND kind='reset'", [
         t.user_id,

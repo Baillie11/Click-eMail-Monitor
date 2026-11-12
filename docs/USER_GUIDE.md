@@ -12,7 +12,7 @@ Create monitoring rules for relevant sender, recipient, subject or unread criter
 
 ## ChatGPT
 
-Connect the deployed MCP app as described in CHATGPT.md. Ask it to list mailboxes, search imported messages or read a selected email. Example: “Find emails about my booking.” The worker continues independently of ChatGPT. Tokens expire after one hour in this version; reconnect if access expires.
+Connect the deployed MCP app as described in CHATGPT.md. Ask it to list mailboxes, search imported messages or read a selected email. Example: “Find emails about my booking.” The worker continues independently of ChatGPT. Access renews automatically for up to 90 days after connecting. Reconnect after that period, revocation or password reset.
 
 ## Navigation
 

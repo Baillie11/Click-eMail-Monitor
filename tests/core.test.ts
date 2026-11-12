@@ -525,6 +525,45 @@ describe("OAuth and authenticated MCP", () => {
       provider.verifyAccessToken(tokens.access_token),
     ).rejects.toThrow();
   });
+  it("renews expired access through HTTP, binds refresh tokens and revokes replayed families", async () => {
+    const p = oauthProvider(db);
+    const c = await p.clientsStore.registerClient!({redirect_uris:["https://client.example/refresh"],token_endpoint_auth_method:"none"} as any);
+    const code = id();
+    await db.query("INSERT INTO oauth_codes VALUES($1,$2,$3,$4,$5,$6,now()+interval '5 minutes')",
+      [digest(code),c.client_id,user,"https://client.example/refresh","challenge",config.origin+"/mcp"]);
+    const original = await p.exchangeAuthorizationCode(c,code,undefined,"https://client.example/refresh",new URL(config.origin+"/mcp"));
+    expect(original.refresh_token).toBeTruthy();
+    await db.query("UPDATE oauth_tokens SET expires_at=now()-interval '1 second' WHERE hash=$1",[digest(original.access_token)]);
+    await expect(p.verifyAccessToken(original.access_token)).rejects.toThrow();
+    const refresh = (value: string, extra = {}) => request(app).post("/token").type("form").send({grant_type:"refresh_token",client_id:c.client_id,refresh_token:value,...extra});
+    expect((await refresh(original.refresh_token!,{resource:"https://wrong.example/mcp"})).status).toBe(400);
+    expect((await refresh(original.refresh_token!,{scope:"admin"})).status).toBe(400);
+    await expect(p.exchangeRefreshToken({...c,client_id:id()},original.refresh_token!)).rejects.toThrow();
+    const renewed = await refresh(original.refresh_token!);
+    expect(renewed.status).toBe(200);
+    expect(renewed.body.refresh_token).not.toBe(original.refresh_token);
+    expect((await p.verifyAccessToken(renewed.body.access_token)).extra?.userId).toBe(user);
+    const stored = await one(db,"SELECT hash,used_at FROM oauth_refresh_tokens WHERE hash=$1",[digest(original.refresh_token!)]);
+    expect(stored.used_at).toBeTruthy();
+    expect(stored.hash).not.toBe(original.refresh_token);
+    expect((await refresh(original.refresh_token!)).body.error).toBe("invalid_grant");
+    await expect(p.verifyAccessToken(renewed.body.access_token)).rejects.toThrow();
+    expect((await refresh(renewed.body.refresh_token)).status).toBe(400);
+  });
+  it("revokes refresh tokens with access tokens and rejects expiry", async () => {
+    const p = oauthProvider(db);
+    const c = await p.clientsStore.registerClient!({redirect_uris:["https://client.example/revoke"],token_endpoint_auth_method:"none"} as any);
+    for (const expired of [false,true]) {
+      const code=id();
+      await db.query("INSERT INTO oauth_codes VALUES($1,$2,$3,$4,$5,$6,now()+interval '5 minutes')",[digest(code),c.client_id,user,"https://client.example/revoke","challenge",config.origin+"/mcp"]);
+      const t=await p.exchangeAuthorizationCode(c,code,undefined,"https://client.example/revoke",new URL(config.origin+"/mcp"));
+      if (expired) await db.query("UPDATE oauth_refresh_tokens SET expires_at=now()-interval '1 second' WHERE hash=$1",[digest(t.refresh_token!)]);
+      else await p.revokeToken!(c,{token:t.access_token});
+      await expect(p.exchangeRefreshToken(c,t.refresh_token!)).rejects.toThrow();
+    }
+    const metadata=await request(app).get("/.well-known/oauth-authorization-server");
+    expect(metadata.body.grant_types_supported).toContain("refresh_token");
+  });
   it("rejects invalid PKCE through the real token endpoint", async () => {
     const p = oauthProvider(db);
     const c = await p.clientsStore.registerClient!({

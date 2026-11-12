@@ -24,6 +24,6 @@
 - SMTP partial-recipient acceptance is recorded for reconciliation. The application will not resend automatically to rejected recipients. Failed/uncertain sends need human attention.
 - Folder rename removes stale folder metadata; cached messages from a removed folder remain until retention and may not support attachment retrieval. Thread grouping uses References/In-Reply-To heuristics and is not a universal provider conversation identifier.
 - Large mailboxes are imported incrementally (100 new UIDs per folder/pass). Oversized messages are skipped. An IMAP search result itself can be large for a very busy bounded date window; staging load tests are required before opening public registration widely.
-- One-hour MCP access tokens require reconnection. OAuth refresh tokens and CIMD are future work, not represented as implemented.
+- MCP access tokens last one hour. Hashed refresh tokens rotate on use and are bound to the client and resource, with a 90-day absolute family lifetime. Replay revokes the family. Password reset and connection revocation remove renewal credentials. CIMD remains future work.
 
 See [validation](VALIDATION.md) for the dated deployment and live-test record.

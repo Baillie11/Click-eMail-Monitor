@@ -610,17 +610,17 @@ export function createApp(db: DB) {
     res.json(
       (
         await db.query(
-          "SELECT DISTINCT t.client_id,c.metadata->>'client_name' AS name FROM oauth_tokens t JOIN oauth_clients c ON c.id=t.client_id WHERE t.user_id=$1 AND t.expires_at>now()",
+          "SELECT DISTINCT t.client_id,c.metadata->>'client_name' AS name FROM (SELECT client_id,user_id,expires_at FROM oauth_tokens UNION ALL SELECT client_id,user_id,expires_at FROM oauth_refresh_tokens WHERE used_at IS NULL) t JOIN oauth_clients c ON c.id=t.client_id WHERE t.user_id=$1 AND t.expires_at>now()",
           [req.userId],
         )
       ).rows,
     ),
   );
   app.delete("/api/connections/:id", async (req, res) => {
-    await db.query(
-      "DELETE FROM oauth_tokens WHERE user_id=$1 AND client_id=$2",
-      [req.userId, req.params.id],
-    );
+    await db.transaction(async (tx) => {
+      await tx.query("DELETE FROM oauth_refresh_tokens WHERE user_id=$1 AND client_id=$2", [req.userId, req.params.id]);
+      await tx.query("DELETE FROM oauth_tokens WHERE user_id=$1 AND client_id=$2", [req.userId, req.params.id]);
+    });
     res.json({ ok: true });
   });
   app.use("/api", (_req, res) =>

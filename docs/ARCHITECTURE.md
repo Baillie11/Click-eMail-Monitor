@@ -35,4 +35,4 @@ Imports use folder, UIDVALIDITY and UID identifiers. Cached message data is sear
 
 Draft edits invalidate approval. Approval binds the exact version/content hash. Queue claims and recorded states prevent blind retries; uncertain SMTP delivery needs manual reconciliation. SMTP acceptance does not prove delivery.
 
-Single web instance plus a worker is the intended deployment. Rate limits are process-local. Shared-hosting process limits and cron intervals constrain throughput. This design has no automatic scaling, key rotation or OAuth refresh-token rotation.
+Single web instance plus a worker is the intended deployment. Rate limits are process-local. Shared-hosting process limits and cron intervals constrain throughput. This design has no automatic scaling or credential-encryption key rotation. OAuth refresh tokens rotate, with replay detection and a 90-day absolute renewal lifetime.

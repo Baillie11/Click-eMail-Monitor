@@ -1,6 +1,6 @@
 # Connecting ChatGPT
 
-The application implements a stateless Streamable HTTP MCP endpoint at `https://mailmonitor.clickecommerce.com.au/mcp`, with OAuth authorisation-code, S256 PKCE, dynamic registration of public clients and revocable one-hour access tokens. Token expiry requires reconnection; refresh-token rotation and Client ID Metadata Documents are not implemented in this version.
+The application implements a stateless Streamable HTTP MCP endpoint at `https://mailmonitor.clickecommerce.com.au/mcp`, with OAuth authorisation-code, S256 PKCE, dynamic registration of public clients and revocable one-hour access tokens. Access tokens expire after one hour and can be renewed with rotating refresh tokens. A renewal family expires 90 days after authorisation. Reusing a consumed refresh token revokes its entire family. Disconnect, password reset or family expiry requires reconnection. Client ID Metadata Documents are not implemented.
 
 ## Prerequisites
 

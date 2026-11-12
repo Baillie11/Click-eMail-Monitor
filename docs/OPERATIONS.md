@@ -26,7 +26,7 @@ Restore first into an isolated environment with outgoing mail disabled at the ne
 | Test button | Wait for inline IMAP/SMTP results; authentication tests do not import |
 | Verification email absent | Account transport, provider logs, spam folder and host process capacity |
 | Failed to fetch | HTTPS origin, service health, browser network failure and proxy configuration |
-| ChatGPT connection expired | Reconnect; one-hour access tokens have no refresh flow yet |
+| ChatGPT connection expired | Reconnect if the 90-day renewal grant expired or was revoked; one-hour access tokens now renew automatically |
 | Worker not updating | Cron working directory, lock, environment, limits and completion log |
 | Delivery uncertain | Provider evidence and recipient state; manual reconciliation |
 

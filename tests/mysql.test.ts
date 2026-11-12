@@ -4,6 +4,8 @@ import { migrate } from "../server/schema.js";
 import { type DB, one } from "../server/db.js";
 import { config } from "../server/config.js";
 import { seed } from "../server/seed.js";
+import { oauthProvider } from "../server/oauth.js";
+import { digest, id } from "../server/security.js";
 import { claimMailbox, tick } from "../server/worker.js";
 
 describe.skipIf(!process.env.MYSQL_TEST_URL)(
@@ -22,6 +24,18 @@ describe.skipIf(!process.env.MYSQL_TEST_URL)(
     }, 30000);
     afterAll(async () => db?.close());
 
+    it("serializes refresh rotation and commits replay revocation", async () => {
+      const p = oauthProvider(db);
+      const c = await p.clientsStore.registerClient!({redirect_uris:["https://test.example/cb"],token_endpoint_auth_method:"none"} as any);
+      const code=id();
+      await db.query("INSERT INTO oauth_codes VALUES($1,$2,$3,$4,$5,$6,now()+interval '5 minutes')",[digest(code),c.client_id,user,"https://test.example/cb","challenge",config.origin+"/mcp"]);
+      const t=await p.exchangeAuthorizationCode(c,code,undefined,"https://test.example/cb",new URL(config.origin+"/mcp"));
+      const results=await Promise.allSettled([p.exchangeRefreshToken(c,t.refresh_token!),p.exchangeRefreshToken(c,t.refresh_token!)]);
+      expect(results.filter(r=>r.status==="fulfilled")).toHaveLength(1);
+      expect(results.filter(r=>r.status==="rejected")).toHaveLength(1);
+      const success=results.find(r=>r.status==="fulfilled");
+      if(success?.status==="fulfilled") await expect(p.verifyAccessToken(success.value.access_token)).rejects.toThrow();
+    });
     it("consumes a token exactly once across independent transactions", async () => {
       await db.query(
         "INSERT INTO tokens(hash,user_id,kind,expires_at) VALUES('race',$1,'verify',now()+interval '1 hour')",

@@ -2212,6 +2212,7 @@ function OAuthConsent({ token, run }: any) {
         This application can read your authorised mailboxes and prepare drafts.
         Sending requires your approval in ClickeMailMonitor.
       </p>
+      <p>Access renews automatically for up to 90 days. You can revoke this connection in Settings at any time. Password reset also revokes access.</p>
       <p className="muted">Return address: {pending.redirectUri}</p>
       <div className="card-actions">
         {[false, true].map((allow) => (

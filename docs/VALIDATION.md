@@ -27,7 +27,7 @@ Build, TypeScript checks and ESLint passed for the deployed About page and conne
 
 ## Known limits
 
-OAuth tokens expire after one hour and require reconnecting; refresh tokens are not implemented. Shared-hosting worker checks are periodic, not instant, and process headroom is limited. An empty inbox can mean messages are outside the configured initial import window. This version is not established as suitable for an unrestricted public multi-customer launch.
+OAuth access tokens expire after one hour; rotating refresh tokens now support automatic renewal for up to 90 days. The ChatGPT reconnection and live renewal check for this update remain pending. Shared-hosting worker checks are periodic, not instant, and process headroom is limited. An empty inbox can mean messages are outside the configured initial import window. This version is not established as suitable for an unrestricted public multi-customer launch.
 
 Private browser evidence remains outside this public repository.
 

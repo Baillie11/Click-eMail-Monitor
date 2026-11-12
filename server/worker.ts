@@ -366,4 +366,5 @@ export async function tick(db: DB) {
   await db.query("DELETE FROM tokens WHERE expires_at<now()");
   await db.query("DELETE FROM oauth_codes WHERE expires_at<now()");
   await db.query("DELETE FROM oauth_tokens WHERE expires_at<now()");
+  await db.query("DELETE FROM oauth_refresh_tokens WHERE expires_at<now()");
 }

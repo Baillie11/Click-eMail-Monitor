@@ -8,12 +8,15 @@ import {
   InvalidGrantError,
   InvalidTokenError,
   InvalidRequestError,
-  UnsupportedGrantTypeError,
 } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import { one, type DB } from "./db.js";
 import { token, digest, id, HttpError } from "./security.js";
 import { config } from "./config.js";
 import { requireUser, requireCsrf, issueToken } from "./auth.js";
+async function revokeFamily(db: DB, family: string) {
+  await db.query("DELETE FROM oauth_tokens WHERE hash IN (SELECT access_hash FROM oauth_refresh_tokens WHERE family_id=$1)", [family]);
+  await db.query("DELETE FROM oauth_refresh_tokens WHERE family_id=$1", [family]);
+}
 export function oauthProvider(db: DB): OAuthServerProvider {
   const resource = config.origin + "/mcp";
   return {
@@ -105,22 +108,47 @@ export function oauthProvider(db: DB): OAuthServerProvider {
         )
           throw new InvalidGrantError("Code binding mismatch.");
         await tx.query("DELETE FROM oauth_codes WHERE hash=$1", [digest(raw)]);
-        const access = token();
+        const access = token(), refresh = token();
         await tx.query(
           "INSERT INTO oauth_tokens(hash,client_id,user_id,resource,expires_at) VALUES($1,$2,$3,$4,now()+interval '1 hour')",
           [digest(access), client.client_id, c.user_id, c.resource],
         );
+        await tx.query(
+          "INSERT INTO oauth_refresh_tokens(hash,client_id,user_id,resource,family_id,access_hash,expires_at) VALUES($1,$2,$3,$4,$5,$6,now()+interval '90 days')",
+          [digest(refresh), client.client_id, c.user_id, c.resource, id(), digest(access)],
+        );
         return {
+          refresh_token: refresh,
           access_token: access,
           token_type: "Bearer",
           expires_in: 3600,
           scope: "mail",
         };
       }),
-    exchangeRefreshToken: async () => {
-      throw new UnsupportedGrantTypeError(
-        "Reconnect when your session expires.",
-      );
+    exchangeRefreshToken: async (client, raw, scopes, requestedResource) => {
+      // Return the failure from the transaction so replay revocation commits.
+      const result = await db.transaction(async (tx) => {
+        const r = await one(tx,
+          "SELECT * FROM oauth_refresh_tokens WHERE hash=$1 AND client_id=$2 AND expires_at>now() FOR UPDATE",
+          [digest(raw), client.client_id]);
+        if (!r || (requestedResource && requestedResource.toString() !== r.resource) ||
+            r.resource !== resource || scopes?.some((s) => s !== "mail")) return null;
+        if (r.used_at) {
+          await revokeFamily(tx, r.family_id);
+          return null;
+        }
+        const access = token(), refresh = token();
+        await tx.query("UPDATE oauth_refresh_tokens SET used_at=now() WHERE hash=$1", [digest(raw)]);
+        await tx.query(
+          "INSERT INTO oauth_tokens(hash,client_id,user_id,resource,expires_at) VALUES($1,$2,$3,$4,now()+interval '1 hour')",
+          [digest(access), client.client_id, r.user_id, r.resource]);
+        await tx.query(
+          "INSERT INTO oauth_refresh_tokens(hash,client_id,user_id,resource,family_id,access_hash,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7)",
+          [digest(refresh), client.client_id, r.user_id, r.resource, r.family_id, digest(access), r.expires_at]);
+        return { access_token: access, refresh_token: refresh, token_type: "Bearer", expires_in: 3600, scope: "mail" };
+      });
+      if (!result) throw new InvalidGrantError("Refresh token is invalid, expired or reused. Reconnect this account.");
+      return result;
     },
     verifyAccessToken: async (raw) => {
       const t = await one(
@@ -140,10 +168,13 @@ export function oauthProvider(db: DB): OAuthServerProvider {
       };
     },
     revokeToken: async (client, request) => {
-      await db.query(
-        "DELETE FROM oauth_tokens WHERE hash=$1 AND client_id=$2",
-        [digest(request.token), client.client_id],
-      );
+      await db.transaction(async (tx) => {
+        const r = await one(tx,
+          "SELECT family_id FROM oauth_refresh_tokens WHERE (hash=$1 OR access_hash=$1) AND client_id=$2 FOR UPDATE",
+          [digest(request.token), client.client_id]);
+        if (r) await revokeFamily(tx, r.family_id);
+        await tx.query("DELETE FROM oauth_tokens WHERE hash=$1 AND client_id=$2", [digest(request.token), client.client_id]);
+      });
     },
   };
 }
@@ -154,7 +185,7 @@ export function mountOAuth(app: Express, db: DB) {
     issuerUrl: new URL(config.origin),
     scopesSupported: ["mail"],
   });
-  metadata.grant_types_supported = ["authorization_code"];
+  metadata.grant_types_supported = ["authorization_code", "refresh_token"];
   metadata.token_endpoint_auth_methods_supported = ["none"];
   metadata.revocation_endpoint_auth_methods_supported = ["none"];
   app.get("/.well-known/oauth-authorization-server", (_req, res) =>
