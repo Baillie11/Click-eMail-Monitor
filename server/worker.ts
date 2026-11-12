@@ -3,6 +3,7 @@ import { id, safeMailError, HttpError } from "./security.js";
 import { imapClient, smtpClient, parseMessage, compose } from "./providers.js";
 import { matches, approvalHash } from "./mail-service.js";
 import { mailbox, audit } from "./access.js";
+import { syncContacts } from "./contact-sync.js";
 import { config } from "./config.js";
 export async function storeMessage(
   db: DB,
@@ -379,6 +380,13 @@ export async function tick(db: DB) {
   const owner = id(),
     box = await claimMailbox(db, owner);
   if (box) await runMailboxCheck(db, box, owner);
+  // CRM outages must not prevent mailbox checks or retention cleanup.
+  try {
+    const result = await syncContacts(db);
+    if (result.failed) console.error("Contact sync delivery failed; will retry on the next worker run.");
+  } catch {
+    console.error("Contact sync unavailable; check its configuration and migration.");
+  }
   await db.query(
     `DELETE FROM messages m USING mailboxes b WHERE m.mailbox_id=b.id AND m.received_at<now()-((b.settings->>'retentionDays')::int*interval '1 day')`,
   );

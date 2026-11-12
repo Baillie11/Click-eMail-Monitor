@@ -1,3 +1,4 @@
+import { migrateContactSync } from "./contact-sync.js";
 import { mysqlSchema } from "./mysql-schema.js";
 import type { DB } from "./db.js";
 // Additive, idempotent initial migration. Future changes belong in numbered migrations.
@@ -33,6 +34,8 @@ export async function migrate(db: DB) {
     ? "CREATE TABLE IF NOT EXISTS oauth_refresh_tokens(hash varchar(64) PRIMARY KEY,client_id varchar(64) NOT NULL,user_id varchar(64) NOT NULL,resource longtext NOT NULL,family_id varchar(64) NOT NULL,access_hash varchar(64) NOT NULL,expires_at datetime(3) NOT NULL,used_at datetime(3),INDEX oauth_refresh_family(family_id),INDEX oauth_refresh_user(user_id,client_id),FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin"
     : "CREATE TABLE IF NOT EXISTS oauth_refresh_tokens(hash text PRIMARY KEY,client_id text NOT NULL,user_id text NOT NULL REFERENCES users ON DELETE CASCADE,resource text NOT NULL,family_id text NOT NULL,access_hash text NOT NULL,expires_at timestamptz NOT NULL,used_at timestamptz)");
   await db.query("INSERT INTO migration_versions(version) VALUES(2) ON CONFLICT DO NOTHING");
+  await migrateContactSync(db);
+  await db.query("INSERT INTO migration_versions(version) VALUES(3) ON CONFLICT DO NOTHING");
   if (db.dialect === "mysql") {
     const indexes = await db.query(
       "SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='messages' AND INDEX_NAME='messages_listing'",

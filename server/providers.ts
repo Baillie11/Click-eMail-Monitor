@@ -121,6 +121,11 @@ export async function parseMessage(source: Buffer) {
       contentType: a.contentType,
     })),
     headers: {
+      senderName: addresses(p.from)[0]?.name || "",
+      organization: typeof p.headers.get("organization") === "string" ? p.headers.get("organization") : "",
+      autoSubmitted: String(p.headers.get("auto-submitted") || ""),
+      precedence: String(p.headers.get("precedence") || ""),
+      listId: Boolean(p.headers.get("list-id")),
       inReplyTo: p.inReplyTo || null,
       references: p.references || [],
       replyTo: addresses(p.replyTo),
