@@ -1765,3 +1765,7 @@ summary {
 .about-help { margin-top: 20px; }
 .about-help li + li { margin-top: 8px; }
 @media (max-width: 760px) { .about-grid { grid-template-columns: 1fr; } }
+
+.inbox-page-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.check-all-results { margin-bottom: 20px; }
+.mailbox-card .card-actions { flex-wrap: wrap; gap: 8px; }

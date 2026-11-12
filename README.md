@@ -83,3 +83,5 @@ No licence is currently granted for reuse or redistribution. The repository owne
 ### Check for new mail manually
 
 Open **Mailboxes** and select **Check Now** for the mailbox you want to update. The button shows progress, then the number of messages imported or an error. This also works for a paused mailbox without resuming its scheduled checks. The separate **Test connection** button only checks authentication. New hosted accounts use one **Other email (IMAP/SMTP)** setup form for OrangeHost, VentraIP and other compatible providers. Native Gmail and Outlook/Hotmail sign-in is not implemented.
+
+On the **Inbox**, **Check All Now** checks every live mailbox visible to you in the current workspace, regardless of the Inbox filter. Checks run one at a time, show a result per mailbox, continue after individual errors, and refresh the Inbox when finished. Paused mailboxes receive a one-off check without resuming monitoring. Demo mailboxes are skipped. Keep the Inbox open until the checks finish.

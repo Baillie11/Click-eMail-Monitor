@@ -40,3 +40,7 @@ Build, typecheck and lint passed. All 51 tests passed against local MariaDB, inc
 ## Manual check release — 12 November 2026
 
 All 53 MariaDB tests passed; build, typecheck and lint passed. Added coverage for checking a paused/not-due mailbox immediately, rejecting an overlapping check, releasing leases on success/failure, sanitising errors, and requiring authentication, mailbox access and CSRF. Live browser validation showed the disabled Checking state, then two newly imported messages and an updated last-check timestamp at 4:04 pm Australia/Brisbane. The consolidated IMAP/SMTP form was visually verified. No email was sent. Google/Microsoft OAuth work was deferred by the owner.
+
+## Inbox bulk-check interface — 12 November 2026
+
+Build, typecheck and lint passed. Live browser validation confirmed disabled in-progress Check All Now, sequential progress across all five connected mailboxes, five successful no-new-message results, re-enabled control and refreshed Inbox. Mailbox timestamps advanced. The matching Check Now, Test connection and Pause controls were visually verified on a shared row. Existing backend sync/permission/lease logic is unchanged; the preceding 53-test MariaDB run covers that backend. No mailbox email was sent.

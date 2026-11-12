@@ -28,3 +28,8 @@ Live send coverage remains incomplete; see docs/VALIDATION.md.
 - Consolidated OrangeHost, VentraIP and generic setup cards into one Other email (IMAP/SMTP) form; existing mailboxes are preserved.
 - Passed all 53 MariaDB tests, build, typecheck and lint. The live manual check imported two new messages and updated its timestamp.
 - Gmail and Outlook/Hotmail OAuth integration is deferred at the owner's request.
+
+## 12 November 2026 — Inbox bulk checks
+
+- Added Check All Now to the Inbox, with sequential checks, progress, individual results and an automatic Inbox refresh. Existing per-mailbox permissions, lease protection and rate limits apply.
+- Matched Check Now to the secondary button styling and grouped it with Test connection and Pause; controls wrap on narrow screens.

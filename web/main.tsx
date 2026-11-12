@@ -310,6 +310,8 @@ function App() {
           )}
           {view === "inbox" && (
             <InboxView
+              key={wid}
+              onRefresh={refresh}
               wid={wid}
               boxes={workspaceBoxes}
               cfg={cfg}
@@ -755,6 +757,7 @@ function Auth({ cfg, onLogin, error, run }: any) {
   );
 }
 function InboxView({
+  onRefresh,
   wid,
   boxes,
   cfg,
@@ -774,6 +777,33 @@ function InboxView({
     [page, setPage] = useState(0),
     [busy, setBusy] = useState(false),
     [conversation, setConversation] = useState<any[]>([]);
+  const [checkingAll, setCheckingAll] = useState(false);
+  const [checkProgress, setCheckProgress] = useState("");
+  const [checkResults, setCheckResults] = useState<{ email: string; message: string; failed: boolean }[]>([]);
+  const checkAll = async () => {
+    if (checkingAll) return;
+    const liveBoxes = boxes.filter((b: any) => !b.demo);
+    if (!liveBoxes.length) return;
+    setCheckingAll(true);
+    setCheckResults([]);
+    try {
+      for (const [index, b] of liveBoxes.entries()) {
+        setCheckProgress(`Checking ${index + 1} of ${liveBoxes.length}: ${b.email}`);
+        try {
+          const result = await api("/mailboxes/" + b.id + "/check", "POST", {});
+          setCheckResults(previous => [...previous, { email: b.email, message: result.imported ? `${result.imported} new message${result.imported === 1 ? "" : "s"} imported` : "No new messages", failed: false }]);
+        } catch (error) {
+          setCheckResults(previous => [...previous, { email: b.email, message: error instanceof Error ? error.message : "Check failed. Please try again.", failed: true }]);
+        }
+      }
+      setCheckProgress("Mailbox checks finished. Results below.");
+      await onRefresh();
+    } catch {
+      setCheckProgress("Checks finished, but the inbox could not refresh. Use Refresh messages to reload it.");
+    } finally {
+      setCheckingAll(false);
+    }
+  };
   const load = useCallback(async () => {
     setBusy(true);
     try {
@@ -855,12 +885,21 @@ function InboxView({
         title="Your inbox, in hand."
         text="A little less checking. A little more getting things done."
         action={
-          <button className="secondary" onClick={onConnect}>
-            <Plus size={17} />
-            Connect mailbox
-          </button>
+          <div className="inbox-page-actions">
+            <button className="secondary" disabled={checkingAll || !boxes.some((b: any) => !b.demo)} aria-busy={checkingAll} onClick={() => void checkAll()}>
+              <RefreshCw size={17} />{checkingAll ? "Checking all…" : "Check All Now"}
+            </button>
+            <button className="secondary" onClick={onConnect}>
+              <Plus size={17} />Connect mailbox
+            </button>
+          </div>
         }
       />
+      {checkProgress && <div className="connection-test-result check-all-results" role="status" aria-live="polite">
+        <strong>{checkProgress}</strong>
+        <p>Checks all live mailboxes in this workspace, including paused mailboxes. Scheduled pause settings stay unchanged.</p>
+        {checkResults.map(result => <p key={result.email} className={result.failed ? "connection-test-error" : ""}><strong>{result.email}</strong>: {result.message}</p>)}
+      </div>}
       <div className="stats">
         <div>
           <span className="stat-icon mint">
@@ -1619,18 +1658,10 @@ function MailboxCard({ b, run, refresh, canManage }: any) {
         </span>
       </div>
       <div className="card-actions">
-        <button className="primary" disabled={checking || b.demo} aria-busy={checking} onClick={() => void checkNow()}>
+        <button className="secondary" disabled={checking || b.demo} aria-busy={checking} onClick={() => void checkNow()}>
           <RefreshCw size={15} />{checking ? "Checking…" : "Check Now"}
         </button>
-      </div>
-      <div className="connection-test-result" role="status" aria-live="polite" aria-atomic="true">
-        {checking && <p>Checking for new email… Keep this page open for the result.</p>}
-        {checkResult && <p>{checkResult}</p>}
-        {checkError && <p className="connection-test-error">{checkError}</p>}
-      </div>
-      {b.paused && <p className="muted">Check Now runs once; scheduled monitoring stays paused.</p>}
-      {canManage && (
-        <div className="card-actions">
+        {canManage && <>
           <button
             className="secondary"
             onClick={() => void testConnection()}
@@ -1659,8 +1690,14 @@ function MailboxCard({ b, run, refresh, canManage }: any) {
           >
             <Trash2 size={16} />
           </button>
-        </div>
-      )}
+        </>}
+      </div>
+      <div className="connection-test-result" role="status" aria-live="polite" aria-atomic="true">
+        {checking && <p>Checking for new email… Keep this page open for the result.</p>}
+        {checkResult && <p>{checkResult}</p>}
+        {checkError && <p className="connection-test-error">{checkError}</p>}
+      </div>
+      {b.paused && <p className="muted">Check Now runs once; scheduled monitoring stays paused.</p>}
       <div className="connection-test-result" role="status" aria-live="polite" aria-atomic="true">
         {testing && <p>Checking incoming mail (IMAP) and outgoing mail (SMTP)…</p>}
         {testResult && (
