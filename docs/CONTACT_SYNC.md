@@ -41,3 +41,5 @@ Migration creates `contact_deliveries` and schema version 3. Delivery receipts c
 ## Current rollout
 
 Sender deployed to VentraIP; all 63 tests, lint, typecheck and production build pass. Public health check is healthy. Delivery remains disabled until receiver credentials/mappings are provisioned. Receiver and production mailbox mapping are being coordinated with the Click Marketing Agent chat. Do not describe contact saving as live until a production end-to-end test succeeds.
+
+Production activation is currently blocked on Click Marketing Agent database authentication during its OrangeHost deployment. The receiving integration is implemented there but its live migration/configuration is not yet verified. Finish that deployment, issue business-scoped tokens and mailbox mappings, then run a real import before enabling automatic delivery.
