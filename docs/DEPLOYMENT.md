@@ -84,3 +84,11 @@ Confirmed a replacement web process inherited 60/60 limits and returned HTTP 200
 ## Worker process-limit correction (12 November 2026)
 
 Worker logs showed timeout failing to fork under the imposed 60-process soft limit. The worker now uses a 65-process soft limit, within the account CloudLinux allowance, and directly executes the configured Node binary with one V8 and one libuv worker. The web launcher remains at its existing 60/60 limit. The 15-minute cron, flock overlap guard and 180-second timeout are retained. Other hosted applications were not changed. Shared account capacity can still prevent execution at peak load; this change is not a capacity guarantee.
+
+## OAuth deployment and account capacity — 12 November 2026
+
+Applied additive migration 2 and deployed the refresh-token release. A graceful restart of the verified email application process exposed account-wide process exhaustion (`execve: Resource temporarily unavailable`). The attempted email-site RLimitNPROC override was ineffective and reverted.
+
+With explicit owner approval, ClickPDF was restarted using `/home/clickeco/clickpdf/node-mailmonitor-capacity-launcher`. It sets the soft process limit to 60, `UV_THREADPOOL_SIZE=1`, and executes its existing Node 24 binary with `--v8-pool-size=1`. Only the PassengerNodejs directive in `/home/clickeco/public_html/clickpdf/.htaccess` was changed; its original is retained in a timestamped `htaccess-before-capacity-*.txt` backup in the private ClickPDF directory. Both sites subsequently returned HTTP 200. No other application was adjusted. Account capacity remains shared and limited.
+
+ChatGPT automatic refresh was verified against production by expiring the current access token, making a successful MCP call without reconnecting, and confirming a consumed renewal token plus an active replacement.

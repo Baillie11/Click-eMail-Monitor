@@ -11,14 +11,14 @@ Build, TypeScript checks and ESLint passed for the deployed About page and conne
 - VentraIP Node/Passenger deployment with MariaDB, HTTPS, health endpoint and HTTP-to-HTTPS redirect.
 - Account verification email delivery and successful email verification.
 - ChatGPT OAuth connection and discovery of 11 MCP tools.
-- Mailbox listing, message listing and search through the connected MCP app. The message results were empty.
+- Mailbox listing, message listing and search through the connected MCP app. The initial results were empty; the subsequent OAuth release successfully searched and fetched an imported test message (empty body) and listed four mailboxes.
 - IMAP and SMTP authentication against the connected provider; no mail sent.
 - Scheduled worker completion and last-successful-check timestamp.
 - About navigation and content; Test connection displayed a disabled Testing indicator and inline successful IMAP/SMTP results.
 
 ## Still requiring live validation
 
-- Read an imported real message through ChatGPT, attachments and folder changes.
+- Non-empty message body rendering, attachments and folder changes.
 - Send an explicitly approved reply to a controlled recipient; verify delivery and Sent copy.
 - Recovery email delivery (verification delivery alone does not establish this).
 - Deployed permission isolation with separate users, concurrency, restart recovery and sustained load.
@@ -27,8 +27,12 @@ Build, TypeScript checks and ESLint passed for the deployed About page and conne
 
 ## Known limits
 
-OAuth access tokens expire after one hour; rotating refresh tokens now support automatic renewal for up to 90 days. The ChatGPT reconnection and live renewal check for this update remain pending. Shared-hosting worker checks are periodic, not instant, and process headroom is limited. An empty inbox can mean messages are outside the configured initial import window. This version is not established as suitable for an unrestricted public multi-customer launch.
+OAuth access tokens expire after one hour; rotating refresh tokens now support automatic renewal for up to 90 days. ChatGPT reconnection and automatic renewal after deliberate access-token expiry both passed; the database confirmed refresh rotation and an active replacement. Shared-hosting worker checks are periodic, not instant, and process headroom is limited. An empty inbox can mean messages are outside the configured initial import window. This version is not established as suitable for an unrestricted public multi-customer launch.
 
 Private browser evidence remains outside this public repository.
 
 Repository preparation check, 12 November 2026: 43 tests passed, 5 MySQL-specific tests skipped using default isolated PGlite. The source was compared with the working application before publication. Generated assets, private evidence and runtime data are excluded.
+
+## OAuth renewal release — 12 November 2026
+
+Build, typecheck and lint passed. All 51 tests passed against local MariaDB, including concurrent refresh, replay revocation, expiry, binding and HTTP exchange. Production migration 2 completed. ChatGPT mailbox listing, search and test-message fetch passed. A forced access-token expiry triggered automatic renewal without reconnecting. The temporary expiry diagnostic file was removed. Both ClickeMailMonitor health and ClickPDF returned HTTP 200 after deployment. No mailbox message was sent.
