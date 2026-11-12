@@ -470,7 +470,7 @@ function App() {
                   <Radio size={24} />
                   <h2>Monitor incoming messages</h2>
                   <p>Scheduled checks import new messages from enabled mailboxes. Monitoring rules can flag matching messages for your attention. See Mailboxes for the last and next scheduled check, or pause a mailbox when needed.</p>
-                  <p className="muted">New mail appears after a scheduled check, so it may not be available immediately.</p>
+                  <p className="muted">Use Check Now on a mailbox to check for new email immediately. Scheduled checks continue automatically.</p>
                 </section>
                 <section className="panel">
                   <ShieldCheck size={24} />
@@ -1165,8 +1165,8 @@ function Modal({ title, subtitle, onClose, children, wide = false }: any) {
   );
 }
 function ConnectModal({ wid, cfg, onClose, onSave }: any) {
-  const [provider, setProvider] = useState("orangehost"),
-    [busy, setBusy] = useState(false),
+  const provider = "generic";
+  const [busy, setBusy] = useState(false),
     [localError, setLocalError] = useState("");
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -1215,25 +1215,8 @@ function ConnectModal({ wid, cfg, onClose, onSave }: any) {
             {localError}
           </div>
         )}
-        <div className="provider-options">
-          {Object.entries(cfg?.providers || {}).map(([key, p]: any) => (
-            <button
-              key={key}
-              type="button"
-              className={provider === key ? "selected" : ""}
-              onClick={() => setProvider(key)}
-            >
-              <Mail size={20} />
-              <strong>{p.name}</strong>
-              <small>
-                {key === "orangehost" ? "Direct IMAP + SMTP" : "Preview"}
-              </small>
-            </button>
-          ))}
-        </div>
         <div className="info-strip">
-          {cfg?.providers[provider]?.instructions}{" "}
-          {provider !== "orangehost" && "Preview — not live verified."}
+          Other email (IMAP/SMTP) — includes OrangeHost, VentraIP and other email hosts. Use the secure server settings supplied by your provider.
         </div>
         {cfg?.demo && (
           <div className="alert">
@@ -1556,6 +1539,24 @@ function DraftModal({ draft, boxes, onClose, onRefresh, onChange, cfg }: any) {
   );
 }
 function MailboxCard({ b, run, refresh, canManage }: any) {
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState("");
+  const [checkError, setCheckError] = useState("");
+  const checkNow = async () => {
+    if (checking) return;
+    setChecking(true);
+    setCheckResult("");
+    setCheckError("");
+    try {
+      const result = await api("/mailboxes/" + b.id + "/check", "POST", {});
+      setCheckResult(result.imported ? `Check completed: ${result.imported} new message${result.imported === 1 ? "" : "s"} imported.` : "Check completed: no new messages found.");
+    } catch (error) {
+      setCheckError(error instanceof Error ? error.message : "Mailbox check failed. Please try again.");
+    } finally {
+      setChecking(false);
+      await refresh().catch(() => setCheckError("Could not refresh mailbox details. Reload the page to see the latest status."));
+    }
+  };
   const [confirm, setConfirm] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ imap: string; smtp: string } | null>(null);
@@ -1617,6 +1618,17 @@ function MailboxCard({ b, run, refresh, canManage }: any) {
           </strong>
         </span>
       </div>
+      <div className="card-actions">
+        <button className="primary" disabled={checking || b.demo} aria-busy={checking} onClick={() => void checkNow()}>
+          <RefreshCw size={15} />{checking ? "Checking…" : "Check Now"}
+        </button>
+      </div>
+      <div className="connection-test-result" role="status" aria-live="polite" aria-atomic="true">
+        {checking && <p>Checking for new email… Keep this page open for the result.</p>}
+        {checkResult && <p>{checkResult}</p>}
+        {checkError && <p className="connection-test-error">{checkError}</p>}
+      </div>
+      {b.paused && <p className="muted">Check Now runs once; scheduled monitoring stays paused.</p>}
       {canManage && (
         <div className="card-actions">
           <button
@@ -1660,7 +1672,7 @@ function MailboxCard({ b, run, refresh, canManage }: any) {
         )}
         {testError && <p className="connection-test-error">{testError}</p>}
       </div>
-      {canManage && <p className="muted">Tests your mailbox login without sending email. Messages are imported on the scheduled checks above.</p>}
+      {canManage && <p className="muted">Tests your mailbox login without sending email. Use Check Now to import messages immediately, or wait for a scheduled check.</p>}
       {confirm && (
         <div className="alert error">
           <p>

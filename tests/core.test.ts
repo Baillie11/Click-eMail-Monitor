@@ -32,6 +32,7 @@ import {
   recoverOutbox,
   storeMessage,
   claimMailbox,
+  checkMailboxNow,
 } from "../server/worker.js";
 import { parseMessage, providers, mailboxSchema } from "../server/providers.js";
 import { oauthProvider } from "../server/oauth.js";
@@ -594,5 +595,35 @@ describe("OAuth and authenticated MCP", () => {
       });
     expect(r.status).toBe(400);
     expect(r.body.error).toBe("invalid_grant");
+  });
+});
+
+
+describe("Manual mailbox checks", () => {
+  it("checks immediately while paused, updates timestamps and releases the lease", async () => {
+    const mid = id();
+    await db.query("INSERT INTO mailboxes(id,workspace_id,email,provider,settings,secret,paused,next_check) VALUES($1,$2,$3,'generic',$4,$5,true,now()+interval '1 day')", [mid,box.workspace_id,"manual@example.invalid",JSON.stringify(box.settings),box.secret]);
+    const sync = vi.fn(async (leased: DB) => {
+      await leased.query("SELECT id FROM mailboxes WHERE id=$1", [mid]);
+      await expect(checkMailboxNow(db,user,mid)).rejects.toThrow("already being checked");
+      return 3;
+    });
+    expect(await checkMailboxNow(db,user,mid,sync)).toEqual({ok:true,imported:3});
+    const checked = await one(db,"SELECT * FROM mailboxes WHERE id=$1",[mid]);
+    expect(checked.paused).toBe(true);
+    expect(checked.last_check).toBeTruthy();
+    expect(checked.lease_owner).toBeNull();
+    expect(sync).toHaveBeenCalledOnce();
+    const result = await checkMailboxNow(db,user,mid,async () => { throw new Error("private transport detail"); });
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("private transport detail");
+    expect((await one(db,"SELECT * FROM mailboxes WHERE id=$1",[mid])).lease_owner).toBeNull();
+    await db.query("DELETE FROM mailboxes WHERE id=$1",[mid]);
+  });
+  it("requires mailbox access and CSRF, and refuses demo checks", async () => {
+    await expect(checkMailboxNow(db,id(),box.id)).rejects.toThrow("access denied");
+    expect((await request(app).post("/api/mailboxes/"+box.id+"/check").send({})).status).toBe(401);
+    expect((await agent.post("/api/mailboxes/"+box.id+"/check").send({})).status).toBe(403);
+    expect((await post("/api/mailboxes/"+box.id+"/check",{})).status).toBe(400);
   });
 });

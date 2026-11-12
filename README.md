@@ -79,3 +79,7 @@ No platform-administrator mailbox-reading endpoint exists. Database/server opera
 ## Licensing
 
 No licence is currently granted for reuse or redistribution. The repository owner retains the applicable rights. Public visibility does not make this project open source. Contact the repository owner for permission; a licence can be added when the owner selects one.
+
+### Check for new mail manually
+
+Open **Mailboxes** and select **Check Now** for the mailbox you want to update. The button shows progress, then the number of messages imported or an error. This also works for a paused mailbox without resuming its scheduled checks. The separate **Test connection** button only checks authentication. New hosted accounts use one **Other email (IMAP/SMTP)** setup form for OrangeHost, VentraIP and other compatible providers. Native Gmail and Outlook/Hotmail sign-in is not implemented.

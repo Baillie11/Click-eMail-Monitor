@@ -40,6 +40,7 @@ import {
 } from "./mail-service.js";
 import { mountOAuth } from "./oauth.js";
 import { mountMcp } from "./mcp.js";
+import { checkMailboxNow } from "./worker.js";
 import { digest } from "./security.js";
 export function createApp(db: DB) {
   const app = express();
@@ -156,6 +157,11 @@ export function createApp(db: DB) {
     });
     await audit(db, workspaceId, req.userId!, "mailbox.connected", mid);
     res.status(201).json({ id: mid });
+  });
+  app.post("/api/mailboxes/:id/check", rateLimit({ windowMs: 60000, limit: 10, keyGenerator: (req) => req.userId!, message: { error: "Too many manual checks. Please wait a minute and try again." } }), async (req, res) => {
+    const result = await checkMailboxNow(db, req.userId!, String(req.params.id));
+    if (!result.ok) throw new HttpError(502, result.error);
+    res.json({ imported: result.imported });
   });
   app.post("/api/mailboxes/:id/test", async (req, res) => {
     const b = await mailbox(db, req.userId!, req.params.id);

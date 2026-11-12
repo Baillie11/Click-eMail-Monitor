@@ -1,5 +1,5 @@
 import { type DB, one } from "./db.js";
-import { id, safeMailError } from "./security.js";
+import { id, safeMailError, HttpError } from "./security.js";
 import { imapClient, smtpClient, parseMessage, compose } from "./providers.js";
 import { matches, approvalHash } from "./mail-service.js";
 import { mailbox, audit } from "./access.js";
@@ -51,6 +51,7 @@ export async function storeMessage(
 }
 export async function syncMailbox(db: DB, box: any, makeClient = imapClient) {
   const client = await makeClient(box);
+  let imported = 0;
   try {
     await client.connect();
     const folders = await client.list();
@@ -113,6 +114,7 @@ export async function syncMailbox(db: DB, box: any, makeClient = imapClient) {
                 ...msg,
                 unread: !envelope.flags?.has("\\Seen"),
               });
+              imported++;
             }
           }
           await db.query(
@@ -155,6 +157,7 @@ export async function syncMailbox(db: DB, box: any, makeClient = imapClient) {
   } finally {
     await client.logout().catch(() => client.close());
   }
+  return imported;
 }
 export async function claimMailbox(db: DB, owner: string) {
   return db.transaction(async (tx) => {
@@ -317,12 +320,21 @@ export async function sendNext(
     await audit(tx, b.workspace_id, null, "send." + status, d.id);
   });
 }
-export async function tick(db: DB) {
-  await recoverOutbox(db);
-  await sendNext(db);
-  const owner = id(),
-    box = await claimMailbox(db, owner);
-  if (box) {
+// Manual and scheduled checks share the same lease, heartbeat and failure handling.
+export async function checkMailboxNow(db: DB, user: string, mid: string, sync = syncMailbox) {
+  const owner = id();
+  const box = await db.transaction(async (tx) => {
+    await mailbox(tx, user, mid);
+    const b = await one(tx, "SELECT * FROM mailboxes WHERE id=$1 FOR UPDATE", [mid]);
+    if (!b || b.demo) throw new HttpError(400, "Demo mailboxes cannot check for new email.");
+    const busy = await one(tx, "SELECT id FROM mailboxes WHERE id=$1 AND lease_until>now()", [mid]);
+    if (busy) throw new HttpError(409, "This mailbox is already being checked. Please try again shortly.");
+    await tx.query("UPDATE mailboxes SET lease_until=now()+interval '2 minutes',lease_owner=$1 WHERE id=$2", [owner, mid]);
+    return b;
+  });
+  return runMailboxCheck(db, box, owner, sync);
+}
+async function runMailboxCheck(db: DB, box: any, owner: string, sync = syncMailbox) {
     const heartbeat = setInterval(() => {
       void db
         .query(
@@ -332,11 +344,12 @@ export async function tick(db: DB) {
         .catch(() => {});
     }, 20000);
     try {
-      await syncMailbox(leasedDatabase(db, box.id, owner), box);
+      const imported = await sync(leasedDatabase(db, box.id, owner), box);
       await db.query(
         `UPDATE mailboxes SET status='Connected',last_check=now(),failures=0,next_check=now()+($1*interval '1 second') WHERE id=$2 AND lease_owner=$3`,
         [Math.max(config.minPoll, box.settings.pollSeconds), box.id, owner],
       );
+      return { ok: true as const, imported };
     } catch (e) {
       await db.query(
         `UPDATE mailboxes SET status=$1,failures=failures+1,next_check=now()+($2*interval '1 second') WHERE id=$3 AND lease_owner=$4`,
@@ -351,6 +364,7 @@ export async function tick(db: DB) {
           owner,
         ],
       );
+      return { ok: false as const, error: safeMailError(e) };
     } finally {
       clearInterval(heartbeat);
       await db.query(
@@ -358,7 +372,13 @@ export async function tick(db: DB) {
         [box.id, owner],
       );
     }
-  }
+}
+export async function tick(db: DB) {
+  await recoverOutbox(db);
+  await sendNext(db);
+  const owner = id(),
+    box = await claimMailbox(db, owner);
+  if (box) await runMailboxCheck(db, box, owner);
   await db.query(
     `DELETE FROM messages m USING mailboxes b WHERE m.mailbox_id=b.id AND m.received_at<now()-((b.settings->>'retentionDays')::int*interval '1 day')`,
   );

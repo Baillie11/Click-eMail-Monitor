@@ -36,3 +36,7 @@ Repository preparation check, 12 November 2026: 43 tests passed, 5 MySQL-specifi
 ## OAuth renewal release — 12 November 2026
 
 Build, typecheck and lint passed. All 51 tests passed against local MariaDB, including concurrent refresh, replay revocation, expiry, binding and HTTP exchange. Production migration 2 completed. ChatGPT mailbox listing, search and test-message fetch passed. A forced access-token expiry triggered automatic renewal without reconnecting. The temporary expiry diagnostic file was removed. Both ClickeMailMonitor health and ClickPDF returned HTTP 200 after deployment. No mailbox message was sent.
+
+## Manual check release — 12 November 2026
+
+All 53 MariaDB tests passed; build, typecheck and lint passed. Added coverage for checking a paused/not-due mailbox immediately, rejecting an overlapping check, releasing leases on success/failure, sanitising errors, and requiring authentication, mailbox access and CSRF. Live browser validation showed the disabled Checking state, then two newly imported messages and an updated last-check timestamp at 4:04 pm Australia/Brisbane. The consolidated IMAP/SMTP form was visually verified. No email was sent. Google/Microsoft OAuth work was deferred by the owner.

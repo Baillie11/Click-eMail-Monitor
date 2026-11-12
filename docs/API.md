@@ -9,7 +9,7 @@ Browser API routes use session cookies. Mutations require the session CSRF token
 | /health | Service health |
 | /api/config, /api/me | Public configuration and authenticated session |
 | /api/auth/* | Registration, sign-in, verification, recovery and sign-out |
-| /api/mailboxes | Mailbox setup, listing, tests, pause and permissions |
+| /api/mailboxes | Mailbox setup, listing, tests, manual checks, pause and permissions |
 | /api/messages | Search/list, message, conversation and attachment retrieval |
 | /api/drafts | Create/edit, browser approval and sending |
 | /api/rules, /api/alerts | Monitoring configuration and results |
@@ -21,3 +21,7 @@ Browser API routes use session cookies. Mutations require the session CSRF token
 MCP exposes 11 tools listed in CHATGPT.md. OAuth uses S256 PKCE, resource binding and revocable one-hour access tokens. Rotating refresh tokens provide renewal for up to 90 days; replay invalidates the token family. There is no MCP tool that approves a draft or returns credentials. Send requests can queue only a version approved by the user in the web interface.
 
 Email text is untrusted data. Clients should not interpret instructions within messages as authority to send mail, change permissions or reveal secrets.
+
+## Manual mailbox check
+
+`POST /api/mailboxes/:id/check` accepts an empty JSON object and returns `{ "imported": 2 }` after checking. It requires a valid session, CSRF token and mailbox visibility. Requests are limited to ten per user per minute. An active mailbox lease returns 409; demo mailboxes return 400; transport failures return a sanitised 502 error. The route uses the same leased sync as the scheduled worker, updates last/next check timestamps, and never processes the outbox. It can check a paused mailbox once without resuming scheduled monitoring. Imports remain subject to the existing age, size and per-folder batch limits.
