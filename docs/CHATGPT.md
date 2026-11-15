@@ -45,3 +45,6 @@ Status: package prepared; ChatGPT upload remains pending because the browser aut
 ## Email deletion (15 November 2026)
 
 The new `delete_email` tool moves one explicitly selected message to provider Trash for workspace owners/administrators. It requires `id` and `confirmed: true` and is marked destructive. Deployed and refreshed in ChatGPT on 15 November 2026; the connected app lists 12 tools (8 read, 4 write), including `delete_email`. See [email deletion](EMAIL_DELETION.md) for approvals, recovery and provider requirements.
+
+
+Plugin version 1.0.2 uploaded and verified on 15 November 2026, with the matching icon, Click eCommerce website and deletion description. Refresh tools can regenerate plugin metadata; re-upload the branding package afterwards if the website disappears. The final app list retains `delete_email` among 12 tools, and a live authenticated `list_mailboxes` call succeeded.
