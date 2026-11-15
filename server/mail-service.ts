@@ -71,13 +71,14 @@ export async function listMessages(db: DB, user: string, options: any = {}) {
   if (options.mailboxId) await mailbox(db, user, options.mailboxId);
   return (
     await db.query(
-      `SELECT id,mailbox_id,folder,subject,sender,recipients,received_at,unread,thread_key,attachments,left(body,180) AS preview FROM messages WHERE mailbox_id=ANY($1::text[]) AND ($2::text IS NULL OR mailbox_id=$2) AND ($3::text IS NULL OR folder=$3) AND ($4::text IS NULL OR subject ILIKE '%'||$4||'%' OR sender ILIKE '%'||$4||'%' OR body ILIKE '%'||$4||'%') ORDER BY received_at DESC,id LIMIT 40 OFFSET $5`,
+      `SELECT id,mailbox_id,folder,subject,sender,recipients,received_at,unread,thread_key,attachments,left(body,180) AS preview FROM messages WHERE ($3::text IS NOT NULL OR NOT EXISTS(SELECT 1 FROM folders tf WHERE tf.mailbox_id=messages.mailbox_id AND tf.path=messages.folder AND tf.special_use=$6)) AND mailbox_id=ANY($1::text[]) AND ($2::text IS NULL OR mailbox_id=$2) AND ($3::text IS NULL OR folder=$3) AND ($4::text IS NULL OR subject ILIKE '%'||$4||'%' OR sender ILIKE '%'||$4||'%' OR body ILIKE '%'||$4||'%') ORDER BY received_at DESC,id LIMIT 40 OFFSET $5`,
       [
         boxes,
         options.mailboxId || null,
         options.folder || null,
         options.q || null,
         Math.max(0, Number(options.page) || 0) * 40,
+        "\\Trash",
       ],
     )
   ).rows;
@@ -85,8 +86,10 @@ export async function listMessages(db: DB, user: string, options: any = {}) {
 export async function readMessage(db: DB, user: string, mid: string) {
   const message = await one(db, "SELECT * FROM messages WHERE id=$1", [mid]);
   if (!message) throw new HttpError(404, "Message not found.");
-  await mailbox(db, user, message.mailbox_id);
-  return message;
+  const box = await mailbox(db, user, message.mailbox_id);
+  const folder = await one(db, "SELECT special_use FROM folders WHERE mailbox_id=$1 AND path=$2", [box.id, message.folder]);
+  return { ...message, can_delete: box.role !== "member" && folder?.special_use !== "\\Trash" };
+
 }
 export async function getDraft(db: DB, user: string, did: string) {
   const d = await one(db, "SELECT * FROM drafts WHERE id=$1", [did]);

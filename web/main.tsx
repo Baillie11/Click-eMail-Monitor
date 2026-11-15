@@ -777,6 +777,22 @@ function InboxView({
     [page, setPage] = useState(0),
     [busy, setBusy] = useState(false),
     [conversation, setConversation] = useState<any[]>([]);
+  const [trashConfirm, setTrashConfirm] = useState<any>(null);
+  const [trashing, setTrashing] = useState(false);
+  const [trashNotice, setTrashNotice] = useState("");
+  const trashSelected = async () => {
+    if (!trashConfirm || trashing) return;
+    setTrashing(true);
+    try {
+      const result = await api("/messages/" + trashConfirm.id + "/trash", "POST", { confirmed: true });
+      setSelected(null);
+      setTrashConfirm(null);
+      setConversation([]);
+      setTrashNotice(result.message);
+      await load();
+      await onRefresh();
+    } finally { setTrashing(false); }
+  };
   const [checkingAll, setCheckingAll] = useState(false);
   const [checkProgress, setCheckProgress] = useState("");
   const [checkResults, setCheckResults] = useState<{ email: string; message: string; failed: boolean }[]>([]);
@@ -829,6 +845,7 @@ function InboxView({
   }, [load]);
   useEffect(() => {
     setSelected(null);
+    setTrashConfirm(null);
   }, [boxes.map((b: any) => b.id).join(",")]);
   useEffect(() => {
     setFolder("");
@@ -839,6 +856,8 @@ function InboxView({
       );
   }, [filter]);
   async function select(id: string) {
+    if (trashing) return;
+    setTrashConfirm(null);
     setSelected(await api("/messages/" + id));
     setConversation(await api("/messages/" + id + "/conversation"));
   }
@@ -984,6 +1003,7 @@ function InboxView({
             <RefreshCw size={17} />
           </button>
         </div>
+        {trashNotice && <div className="alert success" role="status">{trashNotice}</div>}
         <div className={"inbox-split " + (selected ? "has-selection" : "")}>
           <div className="message-list">
             {busy && <p className="loading">Updating your inbox…</p>}
@@ -1051,6 +1071,23 @@ function InboxView({
                     {selected.folder} · {stamp(selected.received_at)}
                   </span>
                 </div>
+                <div className="reply-actions">
+                  {selected.can_delete && <button className="secondary danger" disabled={trashing}
+                    onClick={() => { setTrashConfirm(selected); setTrashNotice(""); }}>
+                    <Trash2 size={16} /> Delete email
+                  </button>}
+                </div>
+                {trashConfirm && (
+                  <div className="alert error" role="alert">
+                    <strong>Move this email to Trash?</strong>
+                    <p>{trashConfirm.subject} — {trashConfirm.sender}</p>
+                    <p>This moves the email to your provider’s Trash and affects your other email apps. Restore it using your provider’s webmail before its Trash is emptied. Only workspace owners and administrators can delete messages.</p>
+                    <button className="danger" disabled={trashing} onClick={() => void run(trashSelected)}>
+                      {trashing ? "Moving to Trash…" : "Move to Trash"}
+                    </button>
+                    <button disabled={trashing} onClick={() => setTrashConfirm(null)}>Keep email</button>
+                  </div>
+                )}
                 <h2>{selected.subject}</h2>
                 <div className="sender-line">
                   <span className="sender-avatar">

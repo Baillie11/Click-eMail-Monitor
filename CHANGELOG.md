@@ -50,3 +50,12 @@ Live send coverage remains incomplete; see docs/VALIDATION.md.
 - Renamed the existing ChatGPT plugin to Click Mail Monitor; its connected-account label updated without changing authorization.
 - Converted the owner-supplied PNG image into a six-size ICO, 32px PNG and 180px Apple touch icon, and linked them in the app HTML.
 - Production build passed. Live icon requests returned 200 with image content types and byte-for-byte matches to the converted assets. ChatGPT settings visibly confirmed the new name.
+
+
+## 15 November 2026 — Email deletion
+
+- Added confirmed Move to Trash in Inbox and the destructive `delete_email` MCP tool for Dot/ChatGPT.
+- Restricted deletion to owners/administrators and safe provider-native IMAP MOVE, with identity and mailbox lease checks.
+- Hide Trash from default lists/search, clear corresponding alerts and retain provider webmail recovery.
+- No permanent deletion, bulk deletion or real-mail deletion during automated validation.
+- Deployed to VentraIP; 71 MariaDB tests, typecheck, lint and build passed. Live confirmation and cancellation verified without deleting mail.

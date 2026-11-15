@@ -36,6 +36,8 @@ export async function storeMessage(
       JSON.stringify(message.headers),
     ],
   );
+  const storedFolder = await one(db, "SELECT special_use FROM folders WHERE mailbox_id=$1 AND path=$2", [box.id, folder]);
+  if (storedFolder?.special_use === "\\Trash") return m;
   const rules = (
     await db.query("SELECT * FROM rules WHERE mailbox_id=$1 AND enabled=true", [
       box.id,

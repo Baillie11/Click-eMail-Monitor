@@ -1,3 +1,4 @@
+import { trashMessage } from "./message-actions.js";
 import express from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
@@ -259,6 +260,10 @@ export function createApp(db: DB) {
   app.get("/api/messages/:id", async (req, res) =>
     res.json(await readMessage(db, req.userId!, req.params.id)),
   );
+  app.post("/api/messages/:id/trash", async (req, res) => {
+    z.object({ confirmed: z.literal(true) }).parse(req.body);
+    res.json(await trashMessage(db, req.userId!, req.params.id));
+  });
   app.get("/api/messages/:id/conversation", async (req, res) => {
     const m = await readMessage(db, req.userId!, req.params.id);
     res.json(

@@ -521,6 +521,9 @@ describe("OAuth and authenticated MCP", () => {
     expect(response.body.result.tools.map((x: any) => x.name)).not.toContain(
       "approve_draft",
     );
+    const deletion = response.body.result.tools.find((x: any) => x.name === "delete_email");
+    expect(deletion.annotations).toMatchObject({readOnlyHint:false,destructiveHint:true,idempotentHint:false});
+    expect(deletion.inputSchema.required).toContain("confirmed");
     await provider.revokeToken!(client, { token: tokens.access_token });
     await expect(
       provider.verifyAccessToken(tokens.access_token),
